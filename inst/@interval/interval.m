@@ -18,9 +18,9 @@
 
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
-%% @defmethod  @@sym interval (@var{A}, @var{B})
-%% @defmethodx @@sym interval (@var{A}, @var{B}, @var{lopen})
-%% @defmethodx @@sym interval (@var{A}, @var{B}, @var{lopen}, @var{ropen})
+%% @defmethod  @@interval interval (@var{A}, @var{B})
+%% @defmethodx @@interval interval (@var{A}, @var{B}, @var{lopen})
+%% @defmethodx @@interval interval (@var{A}, @var{B}, @var{lopen}, @var{ropen})
 %% Return an interval.
 %%
 %% Examples:
@@ -54,16 +54,28 @@ function I = interval(varargin)
   if (nargin < 2 || nargin > 4)
     print_usage();
   end
+  
+  lhs = sym(varargin{1});
+  rhs = sym(varargin{2});  
 
-  varargin = sym(varargin);
-
-  for i=3:nargin
-    varargin{i} = logical(varargin{i});
+  if (nargin == 2)
+    bls = false;
+    brs = false;
   end
 
-  p = python_cmd ('return Interval(*_ins),', varargin{:});
-  I = struct();
-  I = class(I, 'interval', p);
+  if (nargin == 3)
+    bls = logical(varargin{3});
+    brs = false;
+  end
+
+  if (nargin == 4)
+    bls = logical(varargin{3});
+    brs = logical(varargin{4});
+  end
+
+  expr = python_cmd ('return Interval(*_ins),', lhs, rhs, bls, brs);
+  I.vars = [];
+  I = class(I, 'interval', expr);
   superiorto ('sym');
 
 end
