@@ -42,22 +42,38 @@
 %% Source: http://docs.sympy.org/dev/modules/matrices/matrices.html
 
 function y = zeros(varargin)
-  if (nargin >= 2)
-    for i=1:size(varargin)(2)
-      if (ischar(varargin{i}))
-        y = sym(zeros(cell2nosyms(varargin){:}));
-        return;
+
+  s = false;
+  t = isa(varargin{nargin}, 'char');
+  n = nargin - double(t);
+
+  if n == nargin
+    for i=1:nargin
+      if isa(varargin{i}, 'sym')
+        s = true;
+        break;
       end
     end
+  else
+    if strcmp(varargin{nargin}, 'sym')
+      s = true;
+    end
+  end  
+
+  if s
+    if n == 1 && t
+      y = python_cmd('return zeros(*_ins),', sym(varargin{1}));
+    elseif n == 1
+      y = python_cmd('return zeros(*_ins),', sym(varargin{:}));
+    elseif t
+      y = sym([builtin('zeros', cell2nosyms({varargin{1:n}}){:})]);
+    else
+      y = sym([builtin('zeros', cell2nosyms(varargin){:})]);
+    end
+  else
+    y = [builtin('zeros', cell2nosyms(varargin){:})];
   end
 
-  if (nargin > 2)
-    y = sym(zeros(cell2nosyms(varargin){:}));
-    return;
-  end
-
-  %% Be careful, varargin should be always sym
-  y = python_cmd('return zeros(*_ins),', sym(varargin){:});
 end
 
 
@@ -75,3 +91,11 @@ end
 %! y = zeros(sym(1), 2);
 %! x = [0 0];
 %! assert( isequal( y, sym(x)))
+
+%!test
+%! %% Check types:
+%! assert( isa( zeros(sym(2), 'double'), 'double'))
+%! assert( isa( zeros(3, sym(3), 'single') , 'single'))
+%! assert( isa( zeros(3, sym(3)), 'sym'))
+%! assert( isa( zeros(3, sym(3), 'sym'), 'sym'))
+%! assert( isa( zeros(3, 3, 'sym'), 'sym'))

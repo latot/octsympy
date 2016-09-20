@@ -43,22 +43,37 @@
 
 function y = eye(varargin)
 
-  if (nargin >= 2)
-    for i=1:size(varargin)(2)
-      if (ischar(varargin{i}))
-        y = sym(eye(cell2nosyms(varargin){:}));
-        return;
+  s = false;
+  t = isa(varargin{nargin}, 'char');
+  n = nargin - double(t);
+
+  if n == nargin
+    for i=1:nargin
+      if isa(varargin{i}, 'sym')
+        s = true;
+        break;
       end
     end
+  else
+    if strcmp(varargin{nargin}, 'sym')
+      s = true;
+    end
+  end  
+
+  if s
+    if n == 1 && t
+      y = python_cmd('return eye(*_ins),', sym(varargin{1}));
+    elseif n == 1
+      y = python_cmd('return eye(*_ins),', sym(varargin{:}));
+    elseif t
+      y = sym([builtin('eye', cell2nosyms({varargin{1:n}}){:})]);
+    else
+      y = sym([builtin('eye', cell2nosyms(varargin){:})]);
+    end
+  else
+    y = [builtin('eye', cell2nosyms(varargin){:})];
   end
 
-  if (nargin > 1)
-    y = sym(eye(cell2nosyms(varargin){:}));
-    return;
-  end
-
-  %% Be careful, varargin should be always sym.
-  y = python_cmd('return eye(*_ins),', varargin{:});
 end
 
 %!test
@@ -75,3 +90,11 @@ end
 %! y = eye(sym(1), 2);
 %! x = [1 0];
 %! assert( isequal( y, sym(x)))
+
+%!test
+%! %% Check types:
+%! assert( isa( eye(sym(2), 'double'), 'double'))
+%! assert( isa( eye(3, sym(3), 'single') , 'single'))
+%! assert( isa( eye(3, sym(3)), 'sym'))
+%! assert( isa( eye(3, sym(3), 'sym'), 'sym'))
+%! assert( isa( eye(3, 3, 'sym'), 'sym'))
