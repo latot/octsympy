@@ -19,8 +19,8 @@
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
 %% @defmethod @@sym zeros (@var{n})
-%% @defmethod @@sym zeros (@var{n}, @var{m})
-%% @defmethod @@sym zeros (@var{n}, @var{m}, @var{class})
+%% @defmethodx @@sym zeros (@var{n}, @var{m})
+%% @defmethodx @@sym zeros (@var{n}, @var{m}, @var{class})
 %% Return a matrix or @var{n}-dimensional array whose elements are all 0.
 %%
 %% Example:

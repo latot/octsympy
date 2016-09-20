@@ -19,8 +19,8 @@
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
 %% @defmethod @@sym ones (@var{n})
-%% @defmethod @@sym ones (@var{n}, @var{m})
-%% @defmethod @@sym ones (@var{n}, @var{m}, @var{class})
+%% @defmethodx @@sym ones (@var{n}, @var{m})
+%% @defmethodx @@sym ones (@var{n}, @var{m}, @var{class})
 %% Return a matrix or @var{n}-dimensional array whose elements are all 1.
 %%
 %% Example:
