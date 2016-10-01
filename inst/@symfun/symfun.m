@@ -127,63 +127,74 @@
 %% Author: Colin B. Macdonald
 %% Keywords: symbolic, symbols, CAS
 
-function f = symfun(expr, vars)
-
-  if (nargin == 0)
-    % octave docs say need a no-argument default for loading from files
-    expr = sym(0);
-    vars = sym('x');
-  elseif (nargin == 1)
-    print_usage ();
+classdef symfun < handle
+  properties
+    vars
+    sym
   end
 
-  % if the vars are in a sym array, put them in a cell array
-  if (isa( vars, 'sym'))
-    varsarray = vars;
-    vars = cell(1, numel(varsarray));
-    for i = 1:numel(varsarray)
-      vars{i} = varsarray(i);
+  methods
+    function f = symfun(expr, vars)
+
+      if (nargin == 0)
+        % octave docs say need a no-argument default for loading from files
+        expr = sym(0);
+        vars = sym('x');
+      elseif (nargin == 1)
+        print_usage ();
+      end
+
+      % if the vars are in a sym array, put them in a cell array
+      if (isa( vars, 'sym'))
+        varsarray = vars;
+        vars = cell(1, numel(varsarray));
+        for i = 1:numel(varsarray)
+          vars{i} = varsarray(i);
+        end
+      end
+
+      % check that vars are unique Symbols
+      cmd = { 'L, = _ins'
+              'if not all([x is not None and x.is_Symbol for x in L]):'
+        '    return False'
+        'return len(set(L)) == len(L)' };
+      if (~ python_cmd (cmd, vars))
+        error('OctSymPy:symfun:argNotUniqSymbols', ...
+              'symfun arguments must be unique symbols')
+      end
+
+      if (ischar (expr))
+        % FIXME: drop this later
+        warning('symfun: deprecated: symfun(''f'', x) format not supported')
+        tok = mystrsplit(expr, {'(', ')', ','});
+        fname = strtrim(tok{1});
+        assert (isvarname (fname))
+        cmd = {['_f = sp.Function("' fname '")(*_ins)'] ...
+                'return (_f,)' };
+        expr = python_cmd (cmd, vars{:});
+      end
+
+      if (isa(expr, 'symfun'))
+        % allow symfun(<symfun>, x)
+        expr = expr.sym;
+      else
+        % e.g., allow symfun(<double>, x)
+        expr = sym(expr);
+      end
+
+      assert (isa (vars, 'cell'))
+      for i=1:length(vars)
+        assert (isa (vars{i}, 'sym'))
+      end
+
+      f.vars = vars;
+      
+      %f = class(f, 'symfun', expr);
+
     end
+  
+    subasgn(val, idx, rhs);
   end
-
-  % check that vars are unique Symbols
-  cmd = { 'L, = _ins'
-          'if not all([x is not None and x.is_Symbol for x in L]):'
-	  '    return False'
-	  'return len(set(L)) == len(L)' };
-  if (~ python_cmd (cmd, vars))
-    error('OctSymPy:symfun:argNotUniqSymbols', ...
-          'symfun arguments must be unique symbols')
-  end
-
-  if (ischar (expr))
-    % FIXME: drop this later
-    warning('symfun: deprecated: symfun(''f'', x) format not supported')
-    tok = mystrsplit(expr, {'(', ')', ','});
-    fname = strtrim(tok{1});
-    assert (isvarname (fname))
-    cmd = {['_f = sp.Function("' fname '")(*_ins)'] ...
-            'return (_f,)' };
-    expr = python_cmd (cmd, vars{:});
-  end
-
-  if (isa(expr, 'symfun'))
-    % allow symfun(<symfun>, x)
-    expr = expr.sym;
-  else
-    % e.g., allow symfun(<double>, x)
-    expr = sym(expr);
-  end
-
-  assert (isa (vars, 'cell'))
-  for i=1:length(vars)
-    assert (isa (vars{i}, 'sym'))
-  end
-
-  f.vars = vars;
-  f = class(f, 'symfun', expr);
-  superiorto ('sym');
-
 end
 
 
