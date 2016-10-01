@@ -62,7 +62,7 @@ function h = horzcat(varargin)
           'return sp.Matrix.hstack(*_proc),'
           };
 
-  varargin = sym(varargin);
+  varargin = cell_array_to_sym(varargin);
   h = python_cmd (cmd, varargin{:});
 
 end
