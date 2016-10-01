@@ -158,212 +158,224 @@
 %% Author: Colin B. Macdonald
 %% Keywords: symbolic, symbols, CAS
 
-function s = sym(x, varargin)
+classdef sym < handle
+  properties
+    pickle
+    symsize
+    flat
+    ascii
+    unicode
+    extra
+  endproperties
 
-  if (nargin == 0)
-    s = sym(0);
-    return
-  end
+  methods
+    function s = sym(x, varargin)
 
-  %% The actual class constructor
-  % Tempting to make a 'private constructor' but we need to access
-  % this from the python ipc stuff: outside the class.  We identify
-  % this non-user-facing usage by empty x and 6 inputs total.  Note
-  % that "sym([])" is valid but "sym([], ...)" is otherwise not.
-  if (isempty(x) && (nargin == 6))
-    s.pickle = varargin{1};
-    s.size = varargin{2};
-    s.flat = varargin{3};
-    s.ascii = varargin{4};
-    s.unicode = varargin{5};
-    s.extra = [];
-    s = class(s, 'sym');
-    return
-  end
-
-  %% User interface for defining sym
-  % sym(1), sym('x'), etc.
-
-  %if (strcmp (class (x), 'symfun')  &&  nargin==1)
-  %  % FIXME: pass a symfun to sym() ctor; convert to pure sym
-  %  % (SMT does not do this in 2014a).  bad idea?
-  %  s = x.sym;
-  %  return
-
-  if (isa (x, 'sym')  &&  nargin==1)
-    % matches sym and subclasses
-    s = x;
-    return
-
-  elseif (iscell (x)  &&  nargin==1)
-    s = cell_array_to_sym (x);
-    return
-
-  elseif (isnumeric(x)  &&  ~isscalar (x)  &&  nargin==1)
-    s = numeric_array_to_sym (x);
-    return
-
-  elseif (islogical (x)  &&  ~isscalar (x)  &&  nargin==1)
-    s = numeric_array_to_sym (x);
-    return
-
-  elseif (isa (x, 'double')  &&  ~isreal (x)  &&  nargin==1)
-    s = sym(real(x)) + sym('I')*sym(imag(x));
-    return
-
-  elseif (isinteger(x)  &&  nargin==1)
-    s = sym(num2str(x, '%ld'));
-    return
-
-  elseif (isa (x, 'double')  &&  nargin==1)
-    [s, flag] = magic_double_str(x);
-    if (~flag)
-      % Allow 1/3 and other "small" fractions.
-      % Personally, I like a warning here so I can catch bugs.
-      % Matlab SMT does this (w/o warning).
-      % FIXME: could have sympy do this?  Or just make symbolic floats?
-      warning('OctSymPy:sym:rationalapprox', ...
-              'Using rat() heuristics for double-precision input (is this what you wanted?)');
-      [N1, D1] = rat(x);
-      [N2, D2] = rat(x/pi);
-      if (10*abs(D2) < abs(D1))
-        % use frac*pi if demoninator significantly shorter
-        s = sprintf('Rational(%s, %s)*pi', num2str(N2), num2str(D2));
-      else
-        s = sprintf('Rational(%s, %s)', num2str(N1), num2str(D1));
+      if (nargin == 0)
+        s = sym(0);
+        return
       end
-    end
-    s = sym(s);
-    return
 
-  elseif (islogical (x)  &&  isscalar(x)  &&  nargin==1)
-    if (x)
-      cmd = 'z = sp.S.true';
-    else
-      cmd = 'z = sp.S.false';
-    end
-
-  elseif (nargin == 2 && ischar(varargin{1}) && strcmp(varargin{1},'clear'))
-    % special case for 'clear', because of side-effects
-    if (isa(x, 'sym'))
-      x = x.flat;    % we just want the string
-    end
-    s = sym(x);
-    % ---------------------------------------------
-    % Muck around in the caller's namespace, replacing syms
-    % that match 'xstr' (a string) with the 'newx' sym.
-    xstr = x;
-    newx = s;
-    context = 'caller';
-    % ---------------------------------------------
-    S = evalin(context, 'whos');
-    evalin(context, '[];');  % clear 'ans'
-    for i = 1:numel(S)
-      obj = evalin(context, S(i).name);
-      [newobj, flag] = symreplace(obj, xstr, newx);
-      if flag, assignin(context, S(i).name, newobj); end
-    end
-    % ---------------------------------------------
-    return
-
-  elseif (isa (x, 'sym')  &&  (nargin >= 2))
-    % support sym(x, assumption) for existing sym x
-    s = sym(x.flat, varargin{:});
-    return
-
-
-  elseif (isa (x, 'char'))
-    asm = [];
-    if (nargin == 2 && isequal(size(varargin{1}), [1 2]))
-      s = make_sym_matrix(x, varargin{1});
-      return
-    elseif (nargin >= 2)
-      % assume the remaining inputs are assumptions
-      asm = varargin;
-    end
-
-    doDecimalCheck = true;
-
-    % preprocess
-    if (strcmpi(x, 'inf')) || (strcmpi(x, '+inf'))
-      x = 'oo';
-    elseif (strcmpi(x, '-inf'))
-      x = '-oo';
-    elseif (strcmpi(x, 'i'))
-      x = 'I';
-    elseif (strcmpi(x, '-i'))
-      x = '-I';
-    elseif (strcmpi(x, 'nan'))
-      x = 'nan';
-    elseif (strcmp(x, 'lambda'))
-      x = 'lamda';
-    elseif (strcmp(x, 'Lambda'))
-      x = 'Lamda';
-    end
-
-    % Decide whether to pass to S() or Symbol()
-    if (any(strcmp(x, {'pi', 'I', 'oo', 'zoo', 'nan'})))
-      useSymbolNotS = false;
-    elseif (regexp(x, '^-?\d*\.?\d*(e-?\d+)?$'))
-      % Numbers: integers and floats
-      useSymbolNotS = false;
-    elseif (regexp(x, '^\w+$'))
-      % Words.  Note must follow numbers case.
-      % Use Symbol instead of S, e.g., for Issue #23:
-      % strcmp(x, {'beta' 'gamma' 'zeta' 'Chi' 'E' 'E1' 'Ei' 'S' 'N' 'Q'})
-      % But we also expect sym('Eq') to work, so match all single words
-      useSymbolNotS = true;
-    elseif (~isempty (strfind (x, '(') ))
-      % SymPy "srepr" or other raw python code
-      useSymbolNotS = false;
-      doDecimalCheck = false;
-    else
-      % Other non-symbols such as sym('1/3')
-      useSymbolNotS = false;
-    end
-
-    if (~useSymbolNotS)
-      % Use S(), as we're not forcing Symbol()
-      assert (isempty (asm))   % sym('pi', 'integer')
-      if (doDecimalCheck && ~isempty(strfind(x, '.')))
-        warning('possibly unintended decimal point in constructor string');
+      %% The actual class constructor
+      % Tempting to make a 'private constructor' but we need to access
+      % this from the python ipc stuff: outside the class.  We identify
+      % this non-user-facing usage by empty x and 6 inputs total.  Note
+      % that "sym([])" is valid but "sym([], ...)" is otherwise not.
+      if (isempty(x) && (nargin == 6))
+        s.pickle = varargin{1};
+        s.symsize = varargin{2};
+        s.flat = varargin{3};
+        s.ascii = varargin{4};
+        s.unicode = varargin{5};
+        s.extra = [];
+        %s = self;
+        return
       end
-      % x is raw sympy, could have various quotes in it
-      cmd = sprintf('z = sympy.S("%s")', strrep(x, '"', '\"'));
 
-    else % useSymbolNotS
-      if (isempty(asm))
-        cmd = sprintf('z = sympy.Symbol("%s")', x);
+      %% User interface for defining sym
+      % sym(1), sym('x'), etc.
 
-      elseif (isscalar(asm) && isscalar(asm{1}) && isstruct(asm{1}))
-        % we have an assumptions dict
-        cmd = sprintf('return sympy.Symbol("%s", **_ins[0]),', x);
-        s = python_cmd (cmd, asm{1});
+      %if (strcmp (class (x), 'symfun')  &&  nargin==1)
+      %  % FIXME: pass a symfun to sym() ctor; convert to pure sym
+      %  % (SMT does not do this in 2014a).  bad idea?
+      %  s = x.sym;
+      %  return
+
+      if (isa (x, 'sym')  &&  nargin==1)
+        % matches sym and subclasses
+        s = x;
         return
 
-      elseif (iscell(asm))
-        valid_asm = assumptions('possible');
-        for n=1:length(asm)
-          assert(ischar(asm{n}), 'sym: assumption must be a string')
-          assert(ismember(asm{n}, valid_asm), ...
-                 'sym: that assumption is not supported')
+      elseif (iscell (x)  &&  nargin==1)
+        s = cell_array_to_sym (x);
+        return
+
+      elseif (isnumeric(x)  &&  ~isscalar (x)  &&  nargin==1)
+        s = numeric_array_to_sym (x);
+        return
+
+      elseif (islogical (x)  &&  ~isscalar (x)  &&  nargin==1)
+        s = numeric_array_to_sym (x);
+        return
+
+      elseif (isa (x, 'double')  &&  ~isreal (x)  &&  nargin==1)
+        s = sym(real(x)) + sym('I')*sym(imag(x));
+        return
+
+      elseif (isinteger(x)  &&  nargin==1)
+        s = sym(num2str(x, '%ld'));
+        return
+
+      elseif (isa (x, 'double')  &&  nargin==1)
+        [s, flag] = magic_double_str(x);
+        if (~flag)
+          % Allow 1/3 and other "small" fractions.
+          % Personally, I like a warning here so I can catch bugs.
+          % Matlab SMT does this (w/o warning).
+          % FIXME: could have sympy do this?  Or just make symbolic floats?
+          warning('OctSymPy:sym:rationalapprox', ...
+                  'Using rat() heuristics for double-precision input (is this what you wanted?)');
+          [N1, D1] = rat(x);
+          [N2, D2] = rat(x/pi);
+          if (10*abs(D2) < abs(D1))
+            % use frac*pi if demoninator significantly shorter
+            s = sprintf('Rational(%s, %s)*pi', num2str(N2), num2str(D2));
+          else
+            s = sprintf('Rational(%s, %s)', num2str(N1), num2str(D1));
+          end
         end
-        cmd = ['z = sympy.Symbol("' x '"' ...
-               sprintf(', %s=True', asm{:}) ')'];
+        s = sym(s);
+        return
+
+      elseif (islogical (x)  &&  isscalar(x)  &&  nargin==1)
+        if (x)
+          cmd = 'z = sp.S.true';
+        else
+          cmd = 'z = sp.S.false';
+        end
+
+      elseif (nargin == 2 && ischar(varargin{1}) && strcmp(varargin{1},'clear'))
+        % special case for 'clear', because of side-effects
+        if (isa(x, 'sym'))
+          x = x.flat;    % we just want the string
+        end
+        s = sym(x);
+        % ---------------------------------------------
+        % Muck around in the caller's namespace, replacing syms
+        % that match 'xstr' (a string) with the 'newx' sym.
+        xstr = x;
+        newx = s;
+        context = 'caller';
+        % ---------------------------------------------
+        S = evalin(context, 'whos');
+        evalin(context, '[];');  % clear 'ans'
+        for i = 1:numel(S)
+          obj = evalin(context, S(i).name);
+          [newobj, flag] = symreplace(obj, xstr, newx);
+          if flag, assignin(context, S(i).name, newobj); end
+        end
+        % ---------------------------------------------
+        return
+
+      elseif (isa (x, 'sym')  &&  (nargin >= 2))
+        % support sym(x, assumption) for existing sym x
+        s = sym(x.flat, varargin{:});
+        return
+
+
+      elseif (isa (x, 'char'))
+        asm = [];
+        if (nargin == 2 && isequal(symsize(varargin{1}), [1 2]))
+          s = make_sym_matrix(x, varargin{1});
+          return
+        elseif (nargin >= 2)
+          % assume the remaining inputs are assumptions
+          asm = varargin;
+        end
+
+        doDecimalCheck = true;
+
+        % preprocess
+        if (strcmpi(x, 'inf')) || (strcmpi(x, '+inf'))
+          x = 'oo';
+        elseif (strcmpi(x, '-inf'))
+          x = '-oo';
+        elseif (strcmpi(x, 'i'))
+          x = 'I';
+        elseif (strcmpi(x, '-i'))
+          x = '-I';
+        elseif (strcmpi(x, 'nan'))
+          x = 'nan';
+        elseif (strcmp(x, 'lambda'))
+          x = 'lamda';
+        elseif (strcmp(x, 'Lambda'))
+          x = 'Lamda';
+        end
+
+        % Decide whether to pass to S() or Symbol()
+        if (any(strcmp(x, {'pi', 'I', 'oo', 'zoo', 'nan'})))
+          useSymbolNotS = false;
+        elseif (regexp(x, '^-?\d*\.?\d*(e-?\d+)?$'))
+          % Numbers: integers and floats
+          useSymbolNotS = false;
+        elseif (regexp(x, '^\w+$'))
+          % Words.  Note must follow numbers case.
+          % Use Symbol instead of S, e.g., for Issue #23:
+          % strcmp(x, {'beta' 'gamma' 'zeta' 'Chi' 'E' 'E1' 'Ei' 'S' 'N' 'Q'})
+          % But we also expect sym('Eq') to work, so match all single words
+          useSymbolNotS = true;
+        elseif (~isempty (strfind (x, '(') ))
+          % SymPy "srepr" or other raw python code
+          useSymbolNotS = false;
+          doDecimalCheck = false;
+        else
+          % Other non-symbols such as sym('1/3')
+          useSymbolNotS = false;
+        end
+
+        if (~useSymbolNotS)
+          % Use S(), as we're not forcing Symbol()
+          assert (isempty (asm))   % sym('pi', 'integer')
+          if (doDecimalCheck && ~isempty(strfind(x, '.')))
+            warning('possibly unintended decimal point in constructor string');
+          end
+          % x is raw sympy, could have various quotes in it
+          cmd = sprintf('z = sympy.S("%s")', strrep(x, '"', '\"'));
+
+        else % useSymbolNotS
+          if (isempty(asm))
+            cmd = sprintf('z = sympy.Symbol("%s")', x);
+
+          elseif (isscalar(asm) && isscalar(asm{1}) && isstruct(asm{1}))
+            % we have an assumptions dict
+            cmd = sprintf('return sympy.Symbol("%s", **_ins[0]),', x);
+            s = python_cmd (cmd, asm{1});
+            return
+
+          elseif (iscell(asm))
+            valid_asm = assumptions('possible');
+            for n=1:length(asm)
+              assert(ischar(asm{n}), 'sym: assumption must be a string')
+              assert(ismember(asm{n}, valid_asm), ...
+                     'sym: that assumption is not supported')
+            end
+            cmd = ['z = sympy.Symbol("' x '"' ...
+                   sprintf(', %s=True', asm{:}) ')'];
+          else
+            error('sym: invalid extra input, perhaps invalid assumptions?');
+          end
+        end % useSymbolNotS
+
       else
-        error('sym: invalid extra input, perhaps invalid assumptions?');
+        x
+        class(x)
+        nargin
+        error('conversion to symbolic with those arguments not (yet) supported');
       end
-    end % useSymbolNotS
 
-  else
-    x
-    class(x)
-    nargin
-    error('conversion to symbolic with those arguments not (yet) supported');
+      obj = python_cmd ({cmd 'return z,'});
+    end
   end
-
-  s = python_cmd ({cmd 'return z,'});
-
 end
 
 
