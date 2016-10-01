@@ -166,7 +166,7 @@ classdef sym < handle
     ascii
     unicode
     extra
-  endproperties
+  end
 
   methods
     function s = sym(x, varargin)
@@ -285,7 +285,7 @@ classdef sym < handle
 
       elseif (isa (x, 'char'))
         asm = [];
-        if (nargin == 2 && isequal(symsize(varargin{1}), [1 2]))
+        if (nargin == 2 && isequal(size(varargin{1}), [1 2]))
           s = make_sym_matrix(x, varargin{1});
           return
         elseif (nargin >= 2)
@@ -373,7 +373,7 @@ classdef sym < handle
         error('conversion to symbolic with those arguments not (yet) supported');
       end
 
-      obj = python_cmd ({cmd 'return z,'});
+      s = python_cmd ({cmd 'return z,'});
     end
   end
 end
