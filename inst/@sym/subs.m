@@ -123,19 +123,8 @@ function g = subs(f, in, out)
   %% In general
   % We build a list of of pairs of substitutions.
 
-  if iscell(in)
-    in = cell_array_to_sym(in);
-  else
-    in = sym(in);
-  end
-
-  if iscell(out)
-    out = cell_array_to_sym(out);
-  else
-    out = sym(out);
-  end
-
-
+  in = sym.symarray(in);
+  out = sym.symarray(out);
 
   if ( (iscell(in))  ||  (numel(in) >= 2) )
     assert_same_shape(in,out)

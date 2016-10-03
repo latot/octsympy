@@ -168,6 +168,37 @@ classdef sym < handle
     extra
   end
 
+  methods (Access = protected)
+    function [s, flag] = magic_double_str(s, x)
+      flag = 1;
+
+      if (~isa(x, 'double') || ~isreal(x))
+        error('OctSymPy:magic_double_str:notrealdouble', ...
+              'Expected a real double precision number');
+      end
+
+      % NOTE: yes, these are floating point equality checks!
+      if (x == pi)
+        s = 'pi';
+      elseif (x == -pi)
+        s = '-pi';
+      elseif ((isinf(x)) && (x > 0))
+        s = 'inf';
+      elseif ((isinf(x)) && (x < 0))
+        s = '-inf';
+      elseif (isnan(x))
+        s = 'nan';
+      elseif (isreal(x) && (abs(x) < 1e15) && (mod(x,1) == 0))
+        % special treatment for "small" integers
+        s = num2str(x);  % better than sprintf('%d', large)
+      else
+        s = '';
+        flag = 0;
+      end
+
+    end
+  end
+
   methods
     function s = sym(x, varargin)
 
@@ -207,7 +238,7 @@ classdef sym < handle
         return
 
       elseif (iscell (x)  &&  nargin==1)
-        s = cell_array_to_sym (x);
+        error('conversion to cell array of symbols from the constructor is no longer supported. Use sym.symarray instead.');
         return
 
       elseif (isnumeric(x)  &&  ~isscalar (x)  &&  nargin==1)
@@ -227,7 +258,7 @@ classdef sym < handle
         return
 
       elseif (isa (x, 'double')  &&  nargin==1)
-        [s, flag] = magic_double_str(x);
+        [s, flag] = s.magic_double_str(x);
         if (~flag)
           % Allow 1/3 and other "small" fractions.
           % Personally, I like a warning here so I can catch bugs.
@@ -375,6 +406,16 @@ classdef sym < handle
 
       s = python_cmd ({cmd 'return z,'});
     end
+  end
+
+  methods(Static)
+      function symout = symarray(argin)
+         if (iscell (argin))
+          symout = cell_array_to_sym(argin);
+         else
+          symout = sym(argin);
+         end
+      end
   end
 end
 
