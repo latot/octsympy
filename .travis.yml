@@ -5,8 +5,8 @@ language: generic
 
 matrix:
   include:
-    - env: PYTHON_VER="" PYTAVE=no  SYMPY_VER=1.0 OCT_PPA=yes DOCTEST=yes COLUMNS=80
-    - env: PYTHON_VER="3" PYTAVE=no  SYMPY_VER=1.0 OCT_PPA=yes DOCTEST=yes COLUMNS=80
+    - env: PYTHON_VER="" PYTAVE=no  SYMPY_VER=1.0 OCT_PPA=yes DOCTEST=yes COLUMNS=80 CONDA=Miniconda2
+    - env: PYTHON_VER="3" PYTAVE=no  SYMPY_VER=1.0 OCT_PPA=yes DOCTEST=yes COLUMNS=80 CONDA=Miniconda3
 
 # need octave devel pkgs for doctest (has compiled code as of July 2015)
 before_install:
@@ -16,12 +16,7 @@ before_install:
   - sudo apt-get update -y;
   - sudo apt-get install -y octave liboctave-dev;
   - sudo apt-get install -y python$PYTHON_VER python$PYTHON_VER-dev;
-  - if [ "$PYTHON_VER" = "3" ]; then
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
-    fi
-  - if [ "$PYTHON_VER" = "" ]; then
-  - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O ~/miniconda.sh
-    fi
+  - wget https://repo.continuum.io/miniconda/$CONDA-latest-Linux-x86_64.sh -O ~/miniconda.sh
   - bash ~/miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - "conda install -y -c anaconda sympy=$SYMPY_VER"
