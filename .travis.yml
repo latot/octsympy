@@ -23,7 +23,7 @@ before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh -O ~/miniconda.sh
   - bash ~/miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
-  - conda install -c anaconda sympy=1.0
+  - conda install -q -c anaconda sympy=1.0
   - if [ "x$DOCTEST" = "xyes" ]; then
         octave -W --no-gui --eval "pkg install -forge doctest";
     fi
