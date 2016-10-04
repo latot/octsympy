@@ -160,63 +160,41 @@
 
 classdef sym < handle
   properties
-    pickle
     symsize
+  end
+
+  properties (Access = private)
+    pickle
     flat
     ascii
     unicode
     extra
   end
 
-  methods (Access = protected)
-    function [s, flag] = magic_double_str(s, x)
-      flag = 1;
-
-      if (~isa(x, 'double') || ~isreal(x))
-        error('OctSymPy:magic_double_str:notrealdouble', ...
-              'Expected a real double precision number');
-      end
-
-      % NOTE: yes, these are floating point equality checks!
-      if (x == pi)
-        s = 'pi';
-      elseif (x == -pi)
-        s = '-pi';
-      elseif ((isinf(x)) && (x > 0))
-        s = 'inf';
-      elseif ((isinf(x)) && (x < 0))
-        s = '-inf';
-      elseif (isnan(x))
-        s = 'nan';
-      elseif (isreal(x) && (abs(x) < 1e15) && (mod(x,1) == 0))
-        % special treatment for "small" integers
-        s = num2str(x);  % better than sprintf('%d', large)
-      else
-        s = '';
-        flag = 0;
-      end
-    end
-  end
-
-  methods(Static, Access = private)
-    function s = cell_array_to_sym (L)
-    %private helper for sym ctor
-    %   convert a cell array to syms, recursively when nests cells found
-      assert(iscell(L))
-
-      s = cell(size(L));
-
-      for i = 1:numel(L)
-        %s{i} = sym(L{i});
-        % not strictly necessary if sym calls this but maybe neater this way:
-        item = L{i};
-        if iscell(item)
-          s{i} = cell_array_to_sym(item);
-        else
-          s{i} = sym(item);
-        end
-      end
-    end
+  methods (Static, Access = private)
+    assert_same_shape(x,y);
+    binop_helper(x, y, scalar_fcn);
+    cell_array_to_sym (L);
+    cell2nosyms(x);
+    codegen(varargin);
+    def_each_elem_binary(x, n);
+    ineq_helper(op, fop, lhs, rhs, nanspecial);
+    is_same_shape(x,y);
+    is_valid_index(x);
+    magic_double_str(x);
+    make_sym_matrix(As, sz);
+    mat_access(A, subs);
+    mat_mask_access(A, I);
+    mat_mask_asgn(A, I, B);
+    mat_rccross_access(A, r, c);
+    mat_rclist_access(A, r, c);
+    mat_rclist_asgn(A, r, c, B);
+    mat_replace(A, subs, b);
+    numeric_array_to_sym(A);
+    triop_helper(x, y, z, scalar_fcn);
+    uniop_bool_helper(x, scalar_fcn, opt, varargin);
+    uniop_helper(x, scalar_fcn);
+    ustr_length(str);
   end
 
   methods
@@ -262,11 +240,11 @@ classdef sym < handle
         return
 
       elseif (isnumeric(x)  &&  ~isscalar (x)  &&  nargin==1)
-        s = numeric_array_to_sym (x);
+        s = sym.numeric_array_to_sym (x);
         return
 
       elseif (islogical (x)  &&  ~isscalar (x)  &&  nargin==1)
-        s = numeric_array_to_sym (x);
+        s = sym.numeric_array_to_sym (x);
         return
 
       elseif (isa (x, 'double')  &&  ~isreal (x)  &&  nargin==1)
@@ -278,7 +256,7 @@ classdef sym < handle
         return
 
       elseif (isa (x, 'double')  &&  nargin==1)
-        [s, flag] = s.magic_double_str(x);
+        [s, flag] = sym.magic_double_str(x);
         if (~flag)
           % Allow 1/3 and other "small" fractions.
           % Personally, I like a warning here so I can catch bugs.
@@ -337,7 +315,7 @@ classdef sym < handle
       elseif (isa (x, 'char'))
         asm = [];
         if (nargin == 2 && isequal(size(varargin{1}), [1 2]))
-          s = make_sym_matrix(x, varargin{1});
+          s = sym.make_sym_matrix(x, varargin{1});
           return
         elseif (nargin >= 2)
           % assume the remaining inputs are assumptions
@@ -428,7 +406,7 @@ classdef sym < handle
     end
   end
 
-  methods(Static)
+  methods (Static)
       function symout = symarray(argin)
          if (iscell (argin))
           symout = sym.cell_array_to_sym(argin);
