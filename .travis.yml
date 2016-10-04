@@ -15,7 +15,7 @@ before_install:
     fi
   - sudo apt-get update -y;
   - sudo apt-get install -y octave liboctave-dev;
-  - sudo apt-get install -y python$PYTHON_VER python$PYTHON_VER-dev;
+  - sudo apt-get install -y python$PYTHON_VER-dev;
   - wget https://repo.continuum.io/miniconda/$CONDA-latest-Linux-x86_64.sh -O ~/miniconda.sh
   - bash ~/miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
