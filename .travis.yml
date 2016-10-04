@@ -15,8 +15,8 @@ before_install:
     fi
   - sudo apt-get update -y;
   - sudo apt-get install -y octave liboctave-dev;
-  - sudo apt-get install -y python$PYTHON_VER-pip;
-  - "pip$PYTHON_VER install --user pyopenssl ndg-httpsclient pyasn1"
+  - sudo apt-get install -y python$PYTHON_VER-pip python$PYTHON_VER-dev libffi-dev libssl-dev;
+  - "pip$PYTHON_VER install --user 'requests[security]'"
   - "pip$PYTHON_VER install --user sympy==$SYMPY_VER"
   - "pip$PYTHON_VER list"
   - "pip show -f sympy"
