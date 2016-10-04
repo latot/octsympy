@@ -18,6 +18,7 @@ before_install:
   - sudo apt-get install -y python$PYTHON_VER-pip;
   - "pip$PYTHON_VER install --user sympy==$SYMPY_VER"
   - "pip$PYTHON_VER list"
+  - "pip show -f sympy"
   - if [ "x$DOCTEST" = "xyes" ]; then
         octave -W --no-gui --eval "pkg install -forge doctest";
     fi
