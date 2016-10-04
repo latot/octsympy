@@ -134,7 +134,7 @@ function display(x)
     end
   end
   s = [s1 s2];
-  n = ustr_length (s);
+  n = sym.ustr_length (s);
   %fputs (1, s);  % only in octave, not matlab
   fprintf (s)
   if (display_snippet)

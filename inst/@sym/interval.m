@@ -55,7 +55,7 @@ function I = interval(varargin)
     print_usage();
   end
 
-  varargin = sym(varargin);
+  varargin = sym.symarray(varargin);
 
   I = python_cmd ('return Interval(*_ins),', varargin{:});
 

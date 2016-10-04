@@ -117,7 +117,7 @@ function S = finiteset(varargin)
   if (nargin == 1 && iscell(varargin{1}))
     varargin = sym(varargin{1});
   else
-    varargin = sym(varargin);
+    varargin = sym.symarray(varargin);
   end
 
   S = python_cmd ('return FiniteSet(*_ins),', varargin{:});

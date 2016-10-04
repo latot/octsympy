@@ -29,7 +29,7 @@ function s = cell_array_to_sym (L)
     % not strictly necessary if sym calls this but maybe neater this way:
     item = L{i};
     if iscell(item)
-      s{i} = cell_array_to_sym(item);
+      s{i} = sym.cell_array_to_sym(item);
     else
       s{i} = sym(item);
     end

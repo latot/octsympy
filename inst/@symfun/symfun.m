@@ -127,13 +127,20 @@
 %% Author: Colin B. Macdonald
 %% Keywords: symbolic, symbols, CAS
 
-classdef symfun < handle
+classdef symfun < sym
   properties
     vars
     sym
   end
 
+  methods (Static, Access = private)
+    helper_symfun_binops(f, g);
+    mystrsplit(str, sep);
+  end
+
   methods
+    subsasgn (val, idx, rhs);
+
     function f = symfun(expr, vars)
 
       if (nargin == 0)
@@ -187,13 +194,13 @@ classdef symfun < handle
         assert (isa (vars{i}, 'sym'))
       end
 
-      f.vars = vars;
-      
-      %f = class(f, 'symfun', expr);
+      idx.type = ".";
+      idx.subs = {"vars"};
+      f.subsasgn (f, idx, vars);
+      %f.subsasgn(vars, vars;
 
+      %f = class(f, 'symfun', expr);
     end
-  
-    subasgn(val, idx, rhs);
   end
 end
 

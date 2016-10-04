@@ -502,29 +502,29 @@ end
 %! x = sym('x');
 %!
 %! a = {1 2};
-%! s = sym(a);
+%! s = sym.symarray(a);
 %! assert (isequal( size(a), size(s) ))
 %!
 %! a = {1 2 {3 4}};
-%! s = sym(a);
+%! s = sym.symarray(a);
 %! assert (isequal( size(a), size(s) ))
 %!
 %! a = {1 2; 3 4};
-%! s = sym(a);
+%! s = sym.symarray(a);
 %! assert (isequal( size(a), size(s) ))
 %!
 %! a = {1 2; 3 {4}};
-%! s = sym(a);
+%! s = sym.symarray(a);
 %! assert (isequal( size(a), size(s) ))
 %!
 %! a = {1 [1 2] x [sym(pi) x]};
-%! s = sym(a);
+%! s = sym.symarray(a);
 %! assert (isequal( size(a), size(s) ))
 %! assert (isequal( size(a{2}), size(s{2}) ))
 %! assert (isequal( size(a{4}), size(s{4}) ))
 %!
 %! a = {{{[1 2; 3 4]}}};
-%! s = sym(a);
+%! s = sym.symarray(a);
 %! assert (isequal( size(a), size(s) ))
 %! assert (isequal( size(a{1}), size(s{1}) ))
 %! assert (isequal( size(a{1}{1}), size(s{1}{1}) ))
