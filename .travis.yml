@@ -5,8 +5,8 @@ language: generic
 
 matrix:
   include:
-    - env: PYTHON_VER="" PYTHON_PIP="" PYTAVE=no  SYMPY_VER=1.0 OCT_PPA=yes DOCTEST=yes COLUMNS=80
-    - env: PYTHON_VER="3" PYTHON_PIP="3" PYTAVE=no  SYMPY_VER=1.1 OCT_PPA=yes DOCTEST=yes COLUMNS=80
+    - env: PYTHON_VER="" PYTHON_PIP="" PYTAVE=no  SYMPY_VER=1.0.rc1 OCT_PPA=yes DOCTEST=yes COLUMNS=80
+    - env: PYTHON_VER="3" PYTHON_PIP="3" PYTAVE=no  SYMPY_VER=1.0.rc1 OCT_PPA=yes DOCTEST=yes COLUMNS=80
 
 # need octave devel pkgs for doctest (has compiled code as of July 2015)
 before_install:
@@ -17,7 +17,7 @@ before_install:
   - sudo apt-get install -y octave liboctave-dev;
   - sudo apt-get install -y python$PYTHON_VER python$PYTHON_PIP-pip python$PYTHON_VER-dev libffi-dev libssl-dev;
   - "pip$PYTHON_PIP install --user 'requests[security]'"
-  - "pip$PYTHON_PIP install --user sympy==$SYMPY_VER"
+  - "pip$PYTHON_PIP install --user https://github.com/sympy/sympy/releases/download/sympy-$SYMPY_VER/sympy-$SYMPY_VER.tar.gz"
   - "pip$PYTHON_PIP list"
   - "pip$PYTHON_PIP show -f sympy"
   - if [ "x$DOCTEST" = "xyes" ]; then
