@@ -169,6 +169,8 @@ classdef sym < handle
     ascii
     unicode
     extra
+    vars
+    sym
   end
 
   methods (Static, Access = private)
