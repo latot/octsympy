@@ -128,18 +128,18 @@
 %% Keywords: symbolic, symbols, CAS
 
 classdef symfun < sym
-  properties
-    vars
-    sym
-  end
 
   methods (Static, Access = private)
     helper_symfun_binops(f, g);
     mystrsplit(str, sep);
   end
 
+  methods (Static)
+    subsasgn(val, idx, rhs);
+    subsref(val, idx, rhs);
+  end
+
   methods
-    subsasgn (val, idx, rhs);
 
     function f = symfun(expr, vars)
 
@@ -194,9 +194,9 @@ classdef symfun < sym
         assert (isa (vars{i}, 'sym'))
       end
 
-      idx.type = ".";
-      idx.subs = {"vars"};
-      f.subsasgn (f, idx, vars);
+      idx.type = '.';
+      idx.subs = 'vars';
+      f = symfun.subsasgn(f, idx, vars);
       %f.subsasgn(vars, vars;
 
       %f = class(f, 'symfun', expr);

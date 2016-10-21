@@ -171,6 +171,11 @@ classdef sym < handle
     extra
   end
 
+  properties
+    vars
+    sym
+  end
+
   methods (Static, Access = private)
     assert_same_shape(x,y);
     binop_helper(x, y, scalar_fcn);
