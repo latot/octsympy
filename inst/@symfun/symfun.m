@@ -135,7 +135,6 @@ classdef symfun < sym
   end
 
   methods (Static)
-    subsasgn(val, idx, rhs);
     subsref(val, idx, rhs);
   end
 
@@ -196,7 +195,7 @@ classdef symfun < sym
 
       idx.type = '.';
       idx.subs = 'vars';
-      f = symfun.subsasgn(f, idx, vars);
+      f.vars = vars;
       %f.subsasgn(vars, vars;
 
       %f = class(f, 'symfun', expr);

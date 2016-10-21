@@ -161,6 +161,8 @@
 classdef sym < handle
   properties
     symsize
+    vars
+    sym
   end
 
   properties (Access = private)
@@ -169,11 +171,6 @@ classdef sym < handle
     ascii
     unicode
     extra
-  end
-
-  properties
-    vars
-    sym
   end
 
   methods (Static, Access = private)
