@@ -150,6 +150,8 @@ classdef symfun < sym
         print_usage ();
       end
 
+      f@sym(expr);
+
       % if the vars are in a sym array, put them in a cell array
       if (isa( vars, 'sym'))
         varsarray = vars;
