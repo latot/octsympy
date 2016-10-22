@@ -161,8 +161,6 @@
 classdef sym < handle
   properties
     symsize
-    vars
-    sym
   end
 
   properties (Access = private)
