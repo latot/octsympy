@@ -129,36 +129,10 @@
 
 classdef symfun < sym
 
-  properties (Access = private)
-    vars
-    sym
-  end
-
-  methods (Static, Access = private)
-    helper_symfun_binops(f, g);
-    mystrsplit(str, sep);
-  end
-
-  methods (Static)
-    subsref(val, idx, rhs);
-  end
-
   methods
-
     function f = symfun(expr, vars)
       class(f)
     end
-  end
-
-  methods (Static)
-    function obj = copy(obj,superobj) 
-      obj.symsize = superobj.symsize;
-      obj.pickle = superobj.pickle;
-      obj.flat = superobj.flat;
-      obj.ascii = superobj.ascii;
-      obj.unicode = superobj.unicode;
-      obj.extra = superobj.extra;
-    end 
   end
 
 end
