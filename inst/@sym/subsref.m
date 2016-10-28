@@ -67,23 +67,7 @@ function out = subsref (f, idx)
       out = sym.mat_access(f, idx.subs);
 
     case '.'
-      fld = idx.subs;
-      if (strcmp (fld, 'pickle'))
-        out = f.pickle;
-      elseif (strcmp (fld, 'flat'))
-        out = f.flat;
-      elseif (strcmp (fld, 'ascii'))
-        out = f.ascii;
-      elseif (strcmp (fld, 'unicode'))
-        out = f.unicode;
-      %elseif (strcmp (fld, 'extra'))
-      %  out = f.extra;
-      % not part of the interface
-      %elseif (strcmp (fld, 'size'))
-      %  out = f.size;
-      else
-        error ('@sym/subsref: invalid or nonpublic property ''%s''', fld);
-      end
+      out = f.(idx.subs);
 
     otherwise
       error ('@sym/subsref: invalid subscript type ''%s''', idx.type);

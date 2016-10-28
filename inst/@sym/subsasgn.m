@@ -100,10 +100,6 @@ function out = subsasgn (val, idx, rhs)
       end
 
     case '.'
-      if ~(iscell(rhs) && isa(val, 'sym')) %%I'm not a symfun
-        assert( isa(rhs, 'sym') || iscell(rhs))
-        assert( ~isa(val, 'sym'))
-      end
       assert( ~isa(idx.subs, 'sym'))
       val.(idx.subs) = rhs;
       out = val;

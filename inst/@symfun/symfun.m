@@ -129,6 +129,11 @@
 
 classdef symfun < sym
 
+  properties (Access = private)
+    vars
+    sym
+  end
+
   methods (Static, Access = private)
     helper_symfun_binops(f, g);
     mystrsplit(str, sep);
@@ -150,7 +155,8 @@ classdef symfun < sym
         print_usage ();
       end
 
-      f@sym(expr);
+      s = sym(expr);
+      f = symfun.copy(f, s);
 
       % if the vars are in a sym array, put them in a cell array
       if (isa( vars, 'sym'))
@@ -203,6 +209,18 @@ classdef symfun < sym
       %f = class(f, 'symfun', expr);
     end
   end
+
+  methods (Static)
+    function obj = copy(obj,superobj) 
+      obj.symsize = superobj.symsize;
+      obj.pickle = superobj.pickle;
+      obj.flat = superobj.flat;
+      obj.ascii = superobj.ascii;
+      obj.unicode = superobj.unicode;
+      obj.extra = superobj.extra;
+    end 
+  end
+
 end
 
 
