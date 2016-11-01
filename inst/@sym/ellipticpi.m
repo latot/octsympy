@@ -66,7 +66,6 @@
 %% @end group
 %% @end example
 %%
-%% @seealso{zeros, @@sym/ones, @@sym/eye}
 %% @end defmethod
 
 
