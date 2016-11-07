@@ -18,18 +18,16 @@
 
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
-%% @defmethod @@sym elliptick (@var{m})
-%% Complete elliptic integral of the first kind.
+%% @defmethod @@sym ellipticF (@var{phi}, @var{m})
+%% Incomplete elliptic integral of the first kind.
 %%
 %% Example:
 %% @example
 %% @group
-%% syms m
-%% elliptick (m)
+%% syms phi m
+%% ellipticF (phi, m)
 %%   @result{} ans = (sym)
-%%       π                        
-%%       ─                        
-%%       2                        
+%%       φ                        
 %%       ⌠                        
 %%       ⎮          1             
 %%       ⎮ ──────────────────── dα
@@ -40,20 +38,26 @@
 %%       0 
 %% @end group
 %% @group
-%% double (elliptick (sym (pi)/99))
-%%   @result{} ans =  1.5835
+%% double (ellipticF (sym (1), sym (-1)))
+%%   @result{} ans =  0.89639
 %% @end group
 %% @end example
 %%
-%% @seealso{@@sym/ellipticf, @@sym/ellipticpi}
+%% @seealso{@@sym/ellipticPi}
 %% @end defmethod
 
 
-function y = elliptick(m)
-  if nargin > 1
-    print_usage();
+function y = ellipticF(phi, m)
+
+  if nargin ~= 2
+    print_usage ();
   end
-  
-  y = ellipticf (sym(pi)/2, m);
+  y = ellipticPi (0, phi, m);
 
 end
+
+
+%!assert (double (ellipticF (sym (pi)/3, sym (-105)/10)), 0.6184459461, 10e-11)
+%!assert (double (ellipticF (sym (pi)/4, sym (-pi))), 0.6485970495, 10e-11)
+%!assert (double (ellipticF (sym (1), sym (-1))), 0.8963937895, 10e-11)
+%!assert (double (ellipticF (sym (pi)/6, sym (0))), 0.5235987756, 10e-11)

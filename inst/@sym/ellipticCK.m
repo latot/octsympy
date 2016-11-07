@@ -18,40 +18,45 @@
 
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
-%% @defmethod @@sym ellipticce (@var{m})
-%% Complete elliptic integral of the first kind.
+%% @defmethod @@sym ellipticCK (@var{m})
+%% Complementary complete elliptic integral of the first kind.
 %%
 %% Example:
 %% @example
 %% @group
 %% syms m
-%% ellipticce (m)
+%% ellipticCK (m)
 %%   @result{} ans = (sym)
 %%       π                        
 %%       ─                        
 %%       2                        
 %%       ⌠                        
+%%       ⎮          1             
+%%       ⎮ ──────────────────── dα
 %%       ⎮    _________________   
 %%       ⎮   ╱        2           
-%%       ⎮ ╲╱  - m⋅sin (α) + 1  dα
+%%       ⎮ ╲╱  - m⋅sin (α) + 1    
 %%       ⌡                        
-%%       0 
+%%       0
 %% @end group
 %% @group
-%% double (ellipticce (sym (-1)))
-%%   @result{} ans =  1.9101
+%% double (ellipticCK (sym (1)/2))
+%%   @result{} ans =  1.8541
 %% @end group
 %% @end example
 %%
-%% @seealso{@@sym/elliptice}
+%% @seealso{@@sym/ellipticF, @@sym/ellipticPi}
 %% @end defmethod
 
 
-function y = ellipticce(m)
+function y = ellipticCK(m)
   if nargin > 1
     print_usage();
   end
   
-  y = elliptice (sym(pi)/2, m);
+  y = ellipticF (sym(pi)/2, m);
 
 end
+
+
+%!assert (double (ellipticCK (sym (1)/2)), 1.8541, 10e-5)

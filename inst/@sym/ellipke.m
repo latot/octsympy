@@ -71,9 +71,9 @@ function varargout = ellipke(m)
   end
 
   if (nargout == 0 || nargout == 1)
-    varargout = {ellipticf(sym (pi)/2, m)};
+    varargout = {ellipticF(sym (pi)/2, m)};
   else
-    varargout = {ellipticf(sym (pi)/2, m) elliptice(sym (pi)/2, m)};
+    varargout = {ellipticF(sym (pi)/2, m) ellipticE(sym (pi)/2, m)};
   end
 
 end

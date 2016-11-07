@@ -18,15 +18,15 @@
 
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
-%% @defmethod @@sym y = ellipticpi (@var{n}, @var{m})
-%% @defmethodx @@sym y = ellipticpi (@var{n}, @var{phi}, @var{m})
-%% Complete elliptic integrals of the first and second kinds.
+%% @defmethod @@sym y = ellipticPi (@var{n}, @var{m})
+%% @defmethodx @@sym y = ellipticPi (@var{n}, @var{phi}, @var{m})
+%% Complete and incomplete elliptic integrals of the third kind.
 %%
-%% Example incomplete elliptic integral of the second kind:
+%% Incomplete elliptic integral of the third kind:
 %% @example
 %% @group
 %% syms n phi m
-%% ellipticpi (n, phi, m)
+%% ellipticPi (n, phi, m)
 %%   @result{} ans = (sym)
 %%       φ                                          
 %%       ⌠                                          
@@ -39,14 +39,14 @@
 %%       0 
 %% @end group
 %% @group
-%% double (ellipticpi (sym (1), sym (1)/10, sym (1)/2))
+%% double (ellipticPi (sym (1), sym (1)/10, sym (1)/2))
 %%   @result{} ans =  0.10042
 %% @end group
 %% @end example
-%% Example complete elliptic integral of the second kind:
+%% Complete elliptic integral of the third kind:
 %% @example
 %% @group
-%% ellipticpi (n, m)
+%% ellipticPi (n, m)
 %%   @result{} ans = (sym)
 %%       π                                          
 %%       ─                                          
@@ -61,7 +61,7 @@
 %%       0 
 %% @end group
 %% @group
-%% double (ellipticpi (sym (pi)/4, sym(pi)/8))
+%% double (ellipticPi (sym (pi)/4, sym(pi)/8))
 %%   @result{} ans =  4.0068
 %% @end group
 %% @end example
@@ -69,19 +69,25 @@
 %% @end defmethod
 
 
-function y = ellipticpi(n, phi, m)
+function y = ellipticPi(n, phi, m)
 
   switch nargin
     case 2
-      y = ellipticpi (n, sym(pi)/2, phi);
+      y = ellipticPi (n, sym(pi)/2, phi);
     case 3
       assert (~ismember (sym ('alpha'), {phi, m}), 'You can not use alpha symbol in this function.')
       cmd = {'def _op(a, b, c):'
              '    m = Symbol("alpha")'
              '    return Integral(1/((1-a*sin(m)**2)*sqrt(1-c*sin(m)**2)), (m, 0, b))'};
-      y = triop_helper (sym(n), sym(phi), sym(m), cmd);
+      y = elementwise_op (cmd, sym(n), sym(phi), sym(m));
     otherwise
       print_usage();
   end
 
 end
+
+
+%!assert (double (ellipticPi (sym (-23)/10, sym (pi)/4, 0)), 0.5876852228, 10e-11)
+%!assert (double (ellipticPi (sym (1)/3, sym (pi)/3, sym (1)/2)), 1.285032276, 10e-11)
+%!assert (double (ellipticPi (sym (-1), 0, sym (1))), 0)
+%!assert (double (ellipticPi (sym (2), sym (pi)/6, sym (2))), 0.7507322117, 10e-11)

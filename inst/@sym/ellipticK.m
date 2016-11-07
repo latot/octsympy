@@ -18,14 +18,14 @@
 
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
-%% @defmethod @@sym ellipticck (@var{m})
+%% @defmethod @@sym ellipticK (@var{m})
 %% Complete elliptic integral of the first kind.
 %%
 %% Example:
 %% @example
 %% @group
 %% syms m
-%% ellipticck (m)
+%% ellipticK (m)
 %%   @result{} ans = (sym)
 %%       π                        
 %%       ─                        
@@ -37,23 +37,28 @@
 %%       ⎮   ╱        2           
 %%       ⎮ ╲╱  - m⋅sin (α) + 1    
 %%       ⌡                        
-%%       0
+%%       0 
 %% @end group
 %% @group
-%% double (ellipticck (sym (-pi)))
-%%   @result{} ans =  1.0673
+%% double (ellipticK (sym (pi)/4))
+%%   @result{} ans =  2.2253
 %% @end group
 %% @end example
 %%
-%% @seealso{@@sym/ellipticf, @@sym/ellipticpi}
+%% @seealso{@@sym/ellipticF, @@sym/ellipticPi}
 %% @end defmethod
 
 
-function y = ellipticck(m)
+function y = ellipticK(m)
   if nargin > 1
     print_usage();
   end
   
-  y = ellipticf (sym(pi)/2, m);
+  y = ellipticF (sym(pi)/2, m);
 
 end
+
+
+%!assert (double (ellipticK (sym (1)/2)), 1.854074677, 10e-10)
+%!assert (double (ellipticK (sym (pi)/4)), 2.225253684, 10e-10)
+%!assert (double (ellipticK (sym (-55)/10)), 0.9324665884, 10e-11)

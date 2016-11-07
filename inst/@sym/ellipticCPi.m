@@ -18,14 +18,14 @@
 
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
-%% @defmethod @@sym ellipticcpi (@var{n}, @var{m})
-%% Complete and incomplete elliptic integrals of the second kind.
+%% @defmethod @@sym ellipticCPi (@var{n}, @var{m})
+%% Complementary complete elliptic integral of the third kind.
 %%
 %% Example:
 %% @example
 %% @group
 %% syms n m
-%% ellipticcpi (n, m)
+%% ellipticCPi (n, m)
 %%   @result{} ans = (sym)
 %%       π                                          
 %%       ─                                          
@@ -40,8 +40,8 @@
 %%       0 
 %% @end group
 %% @group
-%% double (ellipticcpi (sym (-1), sym (-pi)/20))
-%%   @result{} ans =  1.0773
+%% double (ellipticCPi (sym (0), sym (1)/2))
+%%   @result{} ans =  1.8541
 %% @end group
 %% @end example
 %%
@@ -49,11 +49,14 @@
 %% @end defmethod
 
 
-function y = ellipticcpi(n, m)
+function y = ellipticCPi(n, m)
   if nargin ~= 2
     print_usage();
   end
   
-  y = ellipticpi (n, sym(pi)/2, m);
+  y = ellipticPi (n, sym(pi)/2, m);
 
 end
+
+
+%!assert (double (ellipticCPi (0, sym(1)/2)), 1.854074677, 10e-10)

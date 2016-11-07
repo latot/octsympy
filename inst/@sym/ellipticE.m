@@ -18,15 +18,15 @@
 
 %% -*- texinfo -*-
 %% @documentencoding UTF-8
-%% @defmethod @@sym elliptice (@var{m})
-%% @defmethodx @@sym elliptice (@var{phi}, @var{m})
+%% @defmethod @@sym ellipticE (@var{m})
+%% @defmethodx @@sym ellipticE (@var{phi}, @var{m})
 %% Complete and incomplete elliptic integrals of the second kind.
 %%
-%% Example incomplete elliptic integral of the second kind:
+%% Incomplete elliptic integral of the second kind:
 %% @example
 %% @group
 %% syms phi m
-%% elliptice (phi, m)
+%% ellipticE (phi, m)
 %%   @result{} ans = (sym)
 %%       φ                        
 %%       ⌠                        
@@ -37,14 +37,14 @@
 %%       0 
 %% @end group
 %% @group
-%% double (elliptice (sym (1), sym (1)/10))
+%% double (ellipticE (sym (1), sym (1)/10))
 %%   @result{} ans =  0.98621
 %% @end group
 %% @end example
-%% Example complete elliptic integral of the second kind:
+%% Complete elliptic integral of the second kind:
 %% @example
 %% @group
-%% elliptice (m)
+%% ellipticE (m)
 %%   @result{} ans = (sym)
 %%       π                        
 %%       ─                        
@@ -57,27 +57,33 @@
 %%       0 
 %% @end group
 %% @group
-%% double (elliptice (sym (1)/10))
-%%   @result{} ans =  1.5308
+%% double (ellipticE (sym (-pi)/4))
+%%   @result{} ans =  1.8443
 %% @end group
 %% @end example
 %%
 %% @end defmethod
 
 
-function y = elliptice(phi, m)
+function y = ellipticE(phi, m)
 
   switch nargin
     case 1
-      y = elliptice (sym(pi)/2, phi);
+      y = ellipticE (sym(pi)/2, phi);
     case 2
       assert (~ismember (sym ('alpha'), {phi, m}), 'You can not use alpha symbol in this function.')
       cmd = {'def _op(a, b):'
              '    m = Symbol("alpha")'
              '    return Integral(sqrt(1-b*sin(m)**2), (m, 0, a))'};
-      y = binop_helper (sym (phi), sym (m), cmd);
+      y = elementwise_op (cmd, sym (phi), sym (m));
     otherwise
       print_usage ();
   end
 
 end
+
+
+%!assert (double (ellipticE (sym (-105)/10)), 3.70961391, 10e-9)
+%!assert (double (ellipticE (sym (-pi)/4)), 1.844349247, 10e-10)
+%!assert (double (ellipticE (sym (0))), 1.570796327, 10e-10)
+%!assert (double (ellipticE (sym (1))), 1, 10e-1)
